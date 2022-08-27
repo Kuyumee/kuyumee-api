@@ -6,7 +6,6 @@ const express = require("express");
 const http = require("http");
 const app = express();
 
-const { animepics } = require("./server/api/animepics.js");
 const { animetracker } = require("./server/api/animetracker.js");
 const { echo } = require("./server/api/echo.js");
 
@@ -27,16 +26,6 @@ app.get("/api/anime-tracker", async (req, res) => {
   try {
     const result = await animetracker(req.query.f, req.query.d);
     res.send(result);
-  } catch (e) {
-    console.log(e);
-    res.sendStatus(500);
-  }
-});
-
-app.get("/api/anime-pics", async (req, res) => {
-  try {
-    const images = await animepics(req.query.next);
-    res.send(images);
   } catch (e) {
     console.log(e);
     res.sendStatus(500);
