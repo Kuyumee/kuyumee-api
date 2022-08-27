@@ -35,7 +35,7 @@ app.get("/api/anime-tracker", async (req, res) => {
 
 app.get("/api/anime-pics", async (req, res) => {
   try {
-    const images = await animepics(req.query.dates, req.query.pages, req.get("host"));
+    const images = await animepics(req.query.next);
     res.send(images);
   } catch (e) {
     console.log(e);
