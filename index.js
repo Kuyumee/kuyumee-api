@@ -20,7 +20,7 @@ app.use("/", function (req, res, next) {
   next();
 });
 
-app.get("/", (req, res) => res.end("Ready!"));
+app.get("/", (req, res) => res.end("OK"));
 
 app.get("/api/anime-tracker", async (req, res) => {
   try {
