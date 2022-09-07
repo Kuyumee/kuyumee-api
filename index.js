@@ -3,10 +3,7 @@ console.log("Starting...");
 require("dotenv").config();
 
 const express = require("express");
-const http = require("http");
 const app = express();
-
-const { animetracker } = require("./server/api/animetracker.js");
 
 require("./server/helpers/db.js").init();
 
@@ -23,7 +20,7 @@ app.get("/", (req, res) => res.end("OK"));
 
 app.get("/api/anime-tracker", async (req, res) => {
   try {
-    const result = await animetracker(req.query.f, req.query.d);
+    const result = await require("./server/api/animetracker.js").animetracker(req.query.f, req.query.d);
     res.send(result);
   } catch (e) {
     console.log(e);
@@ -31,4 +28,4 @@ app.get("/api/anime-tracker", async (req, res) => {
   }
 });
 
-http.createServer(app).listen(process.env.PORT, () => console.log("Ready!"));
+app.listen(process.env.PORT, () => console.log(`Ready!`));

@@ -1,9 +1,9 @@
-const axios = require("axios");
-const { si } = require("nyaapi");
-
-const db = require("../helpers/db.js");
-
 async function animetracker(f, d) {
+  const axios = require("axios");
+  const { si } = require("nyaapi");
+
+  const db = require("../helpers/db.js");
+
   if (f === "home" && d) {
     //get reuest to mal, get request to nyaapi, return images and data of downloaded and available with magnet links
     const res = await axios(`https://api.myanimelist.net/v2/users/${d}/animelist?nsfw=1&status=watching&limit=1000`, {
