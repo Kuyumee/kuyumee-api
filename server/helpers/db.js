@@ -6,7 +6,6 @@ client.connect();
 const db = client.db("database").collection("data");
 
 let cache = {};
-init();
 
 async function init() {
   const rawdb = await db.find().toArray();
@@ -24,4 +23,4 @@ async function set(key, value) {
   db.findOneAndReplace({ key }, { key, value }).then((a) => (a.value === null ? db.insertOne({ key, value }) : ""));
 }
 
-module.exports = { set, get };
+module.exports = { set, get, init };
