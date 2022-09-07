@@ -7,7 +7,7 @@ async function animetracker(f, d) {
   if (f === "home" && d) {
     //get reuest to mal, get request to nyaapi, return images and data of downloaded and available with magnet links
     const res = await axios(`https://api.myanimelist.net/v2/users/${d}/animelist?nsfw=1&status=watching&limit=1000`, {
-      headers: { "X-MAL-CLIENT-ID": "22f6da29213d3e897c45d9be55473cea" },
+      headers: { "X-MAL-CLIENT-ID": process.env.MAL_CLIENT_ID },
     });
 
     const titles = res.data.data.map((a) => (a = { title: a.node.title, key: a.node.title.split(" ").slice(0, 2).join(" "), main_picture: a.node.main_picture.large }));

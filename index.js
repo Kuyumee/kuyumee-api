@@ -2,10 +2,11 @@ console.log("Starting...");
 
 require("dotenv").config();
 
+const { animetracker } = require("./api/animetracker.js");
 const express = require("express");
 const app = express();
 
-require("./server/helpers/db.js").init();
+require("./helpers/db.js").init();
 
 app.use("/", function (req, res, next) {
   res.setHeader("Access-Control-Allow-Origin", "*");
@@ -20,7 +21,7 @@ app.get("/", (req, res) => res.end("OK"));
 
 app.get("/api/anime-tracker", async (req, res) => {
   try {
-    const result = await require("./server/api/animetracker.js").animetracker(req.query.f, req.query.d);
+    const result = await animetracker(req.query.f, req.query.d);
     res.send(result);
   } catch (e) {
     console.log(e);
