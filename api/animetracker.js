@@ -22,11 +22,21 @@ async function animetracker(f, d) {
         continue;
       }
       const title = magnet.name.match(/\[ASW\] (.*?) - /i)[1];
-      const episode = magnet.name.match(/ - (.*?) \[/i)[1];
+      let episode = magnet.name.match(/.* - (.*?) \[/i);
+
+
+      if (episode && !isNaN(parseInt(episode[1]))) {
+        episode = episode[1];
+      } else {
+        continue;
+      }
 
       let obj = results.find((a) => a.title === title);
+      let anime = titles.find((b) => b.title.includes(title));
 
-      if (!obj) {
+      if (!anime) continue;
+
+      if (!obj || !anime) {
         results.push({ title: title, main_picture: titles.find((b) => b.title.includes(title)).main_picture, episodes: [] });
         obj = results.find((a) => a.title === title);
       }
