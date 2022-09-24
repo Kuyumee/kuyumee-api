@@ -24,7 +24,6 @@ async function animetracker(f, d) {
       const title = magnet.name.match(/\[ASW\] (.*?) - /i)[1];
       let episode = magnet.name.match(/.* - (.*?) \[/i);
 
-
       if (episode && !isNaN(parseInt(episode[1]))) {
         episode = episode[1];
       } else {
