@@ -3,7 +3,9 @@ console.log("Starting...");
 require("dotenv").config();
 
 const { animetracker } = require("./api/animetracker.js");
+
 const express = require("express");
+const http = require("http");
 const app = express();
 
 require("./helpers/db.js").init();
@@ -30,3 +32,4 @@ app.get("/api/anime-tracker", async (req, res) => {
 });
 
 app.listen(process.env.PORT, () => console.log(`Ready!`));
+http.createServer(app).listen(process.env.PORT, () => console.log("Ready!"));
