@@ -30,13 +30,13 @@ async function animetracker(f, d) {
         continue;
       }
 
-      let obj = results.find((a) => a.title === title);
-      let anime = titles.find((b) => b.title.includes(title));
+      let obj = results.find((a) => a.title.includes(title.split(" ").slice(0, 2).join(" ")));
+      let anime = titles.find((b) => b.title.includes(title.split(" ").slice(0, 2).join(" ")));
 
       if (!anime) continue;
 
       if (!obj || !anime) {
-        results.push({ title: title, main_picture: titles.find((b) => b.title.includes(title)).main_picture, episodes: [] });
+        results.push({ title: title, main_picture: titles.find((b) => b.title.includes(title.split(" ").slice(0, 2).join(" "))).main_picture, episodes: [] });
         obj = results.find((a) => a.title === title);
       }
 
