@@ -5,51 +5,40 @@ async function animetracker(f, d) {
   const db = require("../helpers/db.js");
 
   if (f === "home" && d) {
-    //get reuest to mal, get request to nyaapi, return images and data of downloaded and available with magnet links
     const res = await axios(`https://api.myanimelist.net/v2/users/${d}/animelist?nsfw=1&status=watching&limit=1000`, {
       headers: { "X-MAL-CLIENT-ID": process.env.MAL_CLIENT_ID },
-    });
+    }).then((a) => a.data.data);
 
-    const titles = res.data.data.map((a) => (a = { title: a.node.title, key: a.node.title.split(" ").slice(0, 2).join(" "), main_picture: a.node.main_picture.large }));
+    let result = res.map((a) => (a = { title: a.node.title, key: a.node.title.slice(0, 8), main_picture: a.node.main_picture.medium, episodes: [] }));
 
-    const magnets = await si.searchAll({ term: `"[ASW]" ${titles.map((a) => `(${a.key})`).join("|")}` });
+    const magnets = await si.searchAll({ term: `[ASW] \"${result.map((a) => a.key).join('"|"')}\"` });
     magnets.reverse();
 
-    let results = [];
-
+    //Loop the magnets to put it in result in their respective location
     for (const magnet of magnets) {
-      if (!magnet.name.match(/\[ASW\] (.*?) - /i)) {
-        continue;
-      }
-      const title = magnet.name.match(/\[ASW\] (.*?) - /i)[1];
+      let title = magnet.name.match(/\[ASW\] (.*?) - /i);
       let episode = magnet.name.match(/.* - (.*?) \[/i);
 
-      if (episode && !isNaN(parseInt(episode[1]))) {
+      if (title && episode && !isNaN(parseInt(episode[1]))) {
+        title = title[1];
         episode = episode[1];
       } else {
         continue;
       }
 
-      let obj = results.find((a) => a.title.includes(title.split(" ").slice(0, 2).join(" ")));
-      let anime = titles.find((b) => b.title.includes(title.split(" ").slice(0, 2).join(" ")));
+      const index = result.findIndex((a) => title.includes(a.key));
 
-      if (!anime) continue;
-
-      if (!obj || !anime) {
-        results.push({ title: title, main_picture: titles.find((b) => b.title.includes(title.split(" ").slice(0, 2).join(" "))).main_picture, episodes: [] });
-        obj = results.find((a) => a.title === title);
-      }
-
-      //0:not downloaded, 1:downloaded
       const status = db.get((d + title + episode).toLowerCase()) ? 1 : 0;
       const createdEpoch = new Date(magnet.date).getTime();
-      obj.episodes.push({ episode: episode, magnet: magnet.magnet, status: status, dateCreated: createdEpoch });
+
+      result[index].episodes.push({ episode, magnet, status, createdEpoch });
     }
 
-    results.sort((a, b) => a.episodes.at(-1).dateCreated - b.episodes.at(-1).dateCreated);
-    results.sort((a, b) => b.episodes.some((c) => !c.status) - a.episodes.some((c) => !c.status));
+    result = result.filter((a) => a.episodes.length > 0);
+    result.sort((a, b) => a.episodes.at(-1).dateCreated - b.episodes.at(-1).dateCreated);
+    result.sort((a, b) => b.episodes.some((c) => !c.status) - a.episodes.some((c) => !c.status));
 
-    return results;
+    return result;
   } else if (f === "update" && d) {
     //update db of what clicked
     await db.set(d.toLowerCase(), true);
