@@ -28,7 +28,7 @@ async function animetracker(f, d) {
 
       const index = result.findIndex((a) => title.includes(a.key));
 
-      const status = db.get((d + title + episode).toLowerCase()) ? 1 : 0;
+      const status = db.get((d + result[index].title + episode).toLowerCase()) ? 1 : 0;
       const dateCreated = new Date(magnet.date).getTime();
 
       result[index].episodes.push({ episode, magnet: magnet.magnet, status, dateCreated });
