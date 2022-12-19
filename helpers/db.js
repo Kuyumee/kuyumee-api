@@ -5,6 +5,7 @@ const client = new MongoClient(process.env.MONGODB_URL);
 client.connect();
 const db = client.db("database").collection("data");
 
+let lastUpdate = Date.now();
 let cache = {};
 
 async function init() {
@@ -15,6 +16,11 @@ async function init() {
 }
 
 function get(key) {
+  if (Date.now() - lastUpdate > 1000 * 60 * 60) {
+    init();
+    lastUpdate = Date.now();
+  }
+
   return cache[key] ? cache[key] : null;
 }
 
