@@ -5,7 +5,7 @@ const client = new MongoClient(process.env.MONGODB_URL);
 client.connect();
 const db = client.db("database").collection("data");
 
-let lastUpdate = Date.now();
+let lastUpdate = 0;
 let cache = {};
 
 async function init() {
