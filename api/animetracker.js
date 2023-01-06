@@ -5,10 +5,10 @@ const db = require("../helpers/db.js");
 async function animetracker(f, d) {
   if (f === "home") {
     const res = await axios(`https://api.myanimelist.net/v2/users/kuyumee/animelist?nsfw=1&status=watching&limit=1000`, { headers: { "X-MAL-CLIENT-ID": process.env.MAL_CLIENT_ID } }).then((a) => a.data.data);
-    const result = res.map((a) => ({ title: a.node.title, nyaa: a.node.title.slice(0, 8), main_picture: a.node.main_picture.medium, episodes: [] }));
+
+    let result = res.map((a) => ({ title: a.node.title, nyaa: a.node.title.slice(0, 8), main_picture: a.node.main_picture.medium, episodes: [] }));
 
     const magnets = await si.searchAll({ term: `[ASW] "${result.map((a) => a.nyaa).join('"|"')}"` });
-    const dbResults = await Promise.all(result.map((a) => db.collection("animetracker").findOne({ _id: a.title, episodes: { $in: [episode] } })));
 
     for (const magnet of magnets.reverse()) {
       const titleMatch = magnet.name.match(/\[ASW\] (.*?) - /i);
@@ -24,9 +24,17 @@ async function animetracker(f, d) {
       if (index === -1) continue;
 
       const dateCreated = new Date(magnet.date).getTime();
-      const status = dbResults[index] ? 1 : 0;
+      const status = db.collection("animetracker").findOne({ _id: title, episodes: { $in: [episode] } });
 
       result[index].episodes.push({ episode, magnetLink, dateCreated, status });
+    }
+
+    await Promise.all(result.flatMap((a) => a.episodes.map((b) => b.status)));
+
+    for (const anime of result) {
+      for (const episode of anime.episodes) {
+        episode.status = (await episode.status) ? 1 : 0;
+      }
     }
 
     result = result.filter((a) => a.episodes.length > 0);
