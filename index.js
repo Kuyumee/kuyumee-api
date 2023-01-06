@@ -7,7 +7,7 @@ const { animetracker } = require("./api/animetracker.js");
 const express = require("express");
 const app = express();
 
-require("./helpers/db.js")
+require("./helpers/db.js");
 
 app.use("/", function (req, res, next) {
   res.setHeader("Access-Control-Allow-Origin", "*");
@@ -22,7 +22,7 @@ app.get("/", (req, res) => res.end("OK"));
 
 app.get("/api/anime-tracker", async (req, res) => {
   try {
-    if (req.query.key !== process.env.KEY) return res.sendStatus(401);
+    if (req.query.key !== process.env.KEY) return res.sendStatus(403);
     const result = await animetracker(req.query.f, req.query.d);
     res.send(result);
   } catch (e) {
