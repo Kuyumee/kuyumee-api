@@ -25,7 +25,7 @@ async function animetracker(f, d) {
 
       const dateCreated = new Date(magnet.date).getTime();
 
-      result[index].episodes.push({ episode, magnetLink, dateCreated });
+      result[index].episodes.push({ episode, magnetLink, dateCreated, status: 0 });
     }
 
     result = result.filter((a) => a.episodes.length > 0);
@@ -36,9 +36,13 @@ async function animetracker(f, d) {
       .find({ _id: { $in: titles } })
       .toArray();
 
-    for (const anime of result) {
+    for (const anime of dbResult) {
+      const index = result.findIndex((a) => a.title === anime._id);
+      if (index === -1) continue;
       for (const episode of anime.episodes) {
-        episode.status = dbResult.some((a) => a._id === anime.title && a.episodes.some((b) => b.episode === episode.episode));
+        const episodeIndex = result[index].episodes.findIndex((a) => a.episode == episode);
+        if (episodeIndex === -1) continue;
+        result[index].episodes[episodeIndex].status = 1;
       }
     }
 
