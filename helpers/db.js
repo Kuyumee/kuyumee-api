@@ -4,6 +4,17 @@ const client = new MongoClient(process.env.MONGODB_URL);
 
 client.connect();
 
-const db = client.db("main");
+let db;
 
-module.exports = db;
+function init() {
+  db = client.db("main");
+}
+
+function getDb() {
+  return db;
+}
+
+module.exports = {
+  init,
+  getDb,
+};

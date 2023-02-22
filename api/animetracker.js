@@ -1,6 +1,7 @@
 const axios = require("axios");
 const { si } = require("nyaapi");
-const db = require("../helpers/db.js");
+
+const db = require("../helpers/db.js").getDb();
 
 async function animetracker(f, d) {
   if (f === "home") {

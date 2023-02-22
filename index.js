@@ -2,19 +2,31 @@ console.log("Starting...");
 
 require("dotenv").config();
 
-const { animetracker } = require("./api/animetracker.js");
-
 const express = require("express");
+const multer = require("multer");
+const fs = require("fs");
+
 const app = express();
 
-require("./helpers/db.js");
+const storage = multer.diskStorage({
+  destination: (req, file, cb) => {
+    cb(null, "uploads/");
+  },
+  filename: (req, file, cb) => {
+    cb(null, `${Date.now()}_${file.originalname}`);
+  },
+});
+
+const upload = multer({ storage: storage });
+
+const { animetracker } = require("./api/animetracker.js");
+require("./helpers/db.js").init();
 
 app.use("/", function (req, res, next) {
   res.setHeader("Access-Control-Allow-Origin", "*");
   res.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS, PUT, PATCH, DELETE");
   res.setHeader("Access-Control-Allow-Headers", "X-Requested-With,content-type");
   res.setHeader("Access-Control-Allow-Credentials", true);
-
   next();
 });
 
@@ -29,6 +41,10 @@ app.get("/api/anime-tracker", async (req, res) => {
     console.log(e);
     res.sendStatus(500);
   }
+});
+
+app.post("/upload", upload.array("files"), (req, res) => {
+  res.send("Files uploaded successfully");
 });
 
 app.listen(process.env.PORT, () => console.log(`Ready!`));
