@@ -1,10 +1,10 @@
 console.log("Starting...");
 
 require("dotenv").config();
+require("./helpers/db.js").init();
 
 const express = require("express");
 const multer = require("multer");
-const fs = require("fs");
 
 const app = express();
 
@@ -20,7 +20,6 @@ const storage = multer.diskStorage({
 const upload = multer({ storage: storage });
 
 const { animetracker } = require("./api/animetracker.js");
-require("./helpers/db.js").init();
 
 app.use("/", function (req, res, next) {
   res.setHeader("Access-Control-Allow-Origin", "*");
