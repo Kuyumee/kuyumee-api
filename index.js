@@ -3,23 +3,20 @@ console.log("Starting...");
 require("dotenv").config();
 require("./helpers/db.js").init();
 
-const express = require("express");
-const multer = require("multer");
+const fs = require("fs");
+const path = require("path");
 
+const express = require("express");
 const app = express();
 
-const storage = multer.diskStorage({
-  destination: (req, file, cb) => {
-    cb(null, "uploads/");
-  },
-  filename: (req, file, cb) => {
-    cb(null, `${Date.now()}_${file.originalname}`);
-  },
-});
+const multer = require("multer");
+const upload = multer({ storage: multer.memoryStorage() });
 
-const upload = multer({ storage: storage });
+const archiver = require("archiver");
+archiver.registerFormat("zip-encrypted", require("archiver-zip-encrypted"));
 
 const { animetracker } = require("./api/animetracker.js");
+const db = require("./helpers/db.js");
 
 app.use("/", function (req, res, next) {
   res.setHeader("Access-Control-Allow-Origin", "*");
@@ -42,8 +39,35 @@ app.get("/api/anime-tracker", async (req, res) => {
   }
 });
 
-app.post("/upload", upload.array("files"), (req, res) => {
-  res.send("Files uploaded successfully");
+app.post("/upload", upload.array("files"), async (req, res) => {
+  try {
+    const bucket = db.getBucket();
+
+    if (req.files.length === 0) {
+      return res.status(400).send("No files were uploaded.");
+    } else {
+      const output = fs.createWriteStream(__dirname + `/${Date.now()}.zip`);
+
+      const archive = archiver("zip-encrypted", {
+        zlib: { level: 9 },
+        encryptionMethod: "aes256",
+        password: process.env.KEY,
+      });
+
+      archive.pipe(output);
+
+      for (const file of req.files) {
+        archive.append(file.buffer, { name: file.originalname });
+      }
+
+      archive.finalize();
+    }
+
+    res.send("Files uploaded successfully");
+  } catch (err) {
+    console.error(err);
+    res.status(500).send("Error uploading files");
+  }
 });
 
 app.listen(process.env.PORT, () => console.log(`Ready!`));
