@@ -46,7 +46,12 @@ app.post("/upload", upload.array("files"), async (req, res) => {
     if (req.files.length === 0) {
       return res.status(400).send("No files were uploaded.");
     } else {
-      const output = fs.createWriteStream(__dirname + `/${Date.now()}.zip`);
+      const filename = `${Date.now()}.zip`;
+      const output = fs.createWriteStream(__dirname + `/.${filename}`);
+
+      output.on("close", (e) => {
+        fs.renameSync(__dirname + `/.${filename}`, __dirname + `/${filename}`);
+      });
 
       const archive = archiver("zip-encrypted", {
         zlib: { level: 9 },
