@@ -1,3 +1,5 @@
+process.env.TZ = "Asia/Manila";
+
 console.log("Starting...");
 
 require("dotenv").config();
