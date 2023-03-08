@@ -57,4 +57,4 @@ async function animetracker(f, d) {
     return true;
   }
 }
-module.exports = { animetracker };
+module.exports = animetracker;

@@ -1,23 +1,19 @@
 process.env.TZ = "Asia/Manila";
-
-console.log("Starting...");
-
 require("dotenv").config();
-const fs = require("fs");
+
 const path = require("path");
 const os = require("os");
 
+const fs = require("fs-extra");
 const express = require("express");
-const app = express();
-
 const multer = require("multer");
-const upload = multer({ dest: os.tmpdir() });
-
 const archiver = require("archiver");
-archiver.registerFormat("zip-encrypted", require("archiver-zip-encrypted"));
+const animetracker = require("./api/animetracker.js");
 
-const db = require("./helpers/db.js").init();
-const { animetracker } = require("./api/animetracker.js");
+const app = express();
+const upload = multer({ dest: os.tmpdir() });
+archiver.registerFormat("zip-encrypted", require("archiver-zip-encrypted"));
+require("./helpers/db.js").init();
 
 app.use("/", function (req, res, next) {
   res.setHeader("Access-Control-Allow-Origin", "*");
@@ -46,7 +42,7 @@ app.get("/api/anime-tracker", async (req, res) => {
 
 app.post("/upload", upload.array("files"), async (req, res) => {
   try {
-    if (!req.files) {
+    if (!req.files || req.files.length === 0) {
       return res.status(400).send("No files were uploaded.");
     }
 
@@ -66,7 +62,9 @@ app.post("/upload", upload.array("files"), async (req, res) => {
     archive.pipe(output);
 
     for (const file of req.files) {
-      archive.append(fs.createReadStream(file.path), { name: file.originalname });
+      const imageDate = new Date(getDateFromFilename(file.originalname));
+      fs.utimesSync(file.path, imageDate, imageDate);
+      archive.file(file.path, { name: file.originalname });
     }
 
     archive.finalize();
@@ -77,5 +75,22 @@ app.post("/upload", upload.array("files"), async (req, res) => {
     res.status(500).send("Error uploading files");
   }
 });
+
+function getDateFromFilename(filename) {
+  // IMG_20230307_114313.jpg
+  // IMG20230307070131.jpg
+  // IMG20230307070131~2.jpg
+  // IMG20230307004845_00.jpg
+  // IMG_20230228_004154.jpg
+
+  const date = filename.match(/(\d{4})(\d{2})(\d{2})_?(\d{2})(\d{2})(\d{2})/);
+  if (date) {
+    console.log("Date found");
+    return new Date(date[1], date[2] - 1, date[3], date[4], date[5], date[6]);
+  } else {
+    console.log("Date not found");
+    return new Date();
+  }
+}
 
 app.listen(process.env.PORT, () => console.log("Ready!"));
