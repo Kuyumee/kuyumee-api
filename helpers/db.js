@@ -11,7 +11,7 @@ async function init() {
   bucket = new GridFSBucket(db);
 }
 
-function getDb() {
+function db() {
   return db;
 }
 
@@ -21,6 +21,6 @@ function getBucket() {
 
 module.exports = {
   init,
-  getDb,
+  db,
   getBucket,
 };

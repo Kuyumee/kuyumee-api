@@ -1,7 +1,6 @@
 const axios = require("axios");
 const { si } = require("nyaapi");
-
-const db = require("../helpers/db.js").getDb();
+const { db } = require("../helpers/db.js");
 
 async function animetracker(f, d) {
   if (f === "home") {
@@ -32,7 +31,7 @@ async function animetracker(f, d) {
     result = result.filter((a) => a.episodes.length > 0);
 
     const titles = result.map((a) => a.title);
-    const dbResult = await db
+    const dbResult = await db()
       .collection("animetracker")
       .find({ _id: { $in: titles } })
       .toArray();
@@ -53,7 +52,7 @@ async function animetracker(f, d) {
     return result;
   } else if (f === "update") {
     const anime = JSON.parse(d);
-    await db.collection("animetracker").updateOne({ _id: anime.title }, { $addToSet: { episodes: anime.episode } }, { upsert: true });
+    await db().collection("animetracker").updateOne({ _id: anime.title }, { $addToSet: { episodes: anime.episode } }, { upsert: true });
     return true;
   }
 }
