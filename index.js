@@ -11,7 +11,23 @@ const archiver = require("archiver");
 const animetracker = require("./api/animetracker.js");
 
 const app = express();
-const upload = multer({ dest: os.tmpdir() });
+const storage = multer.diskStorage({
+  destination: function (req, file, cb) {
+    fs.ensureDirSync("uploads");
+    cb(null, "uploads/");
+  },
+  filename: function (req, file, cb) {
+    const existing = fs.readdirSync("uploads").filter((f) => f.startsWith(file.originalname));
+    if (existing.length > 0) {
+      const last = existing[existing.length - 1];
+      const lastNumber = parseInt(last.split("~")[1]) || 1;
+      cb(null, `${file.originalname}~${lastNumber + 1}`);
+    } else {
+      cb(null, file.originalname);
+    }
+  },
+});
+const upload = multer({ storage: storage });
 archiver.registerFormat("zip-encrypted", require("archiver-zip-encrypted"));
 require("./helpers/db.js").init();
 
@@ -51,6 +67,9 @@ app.post("/upload", upload.array("files"), async (req, res) => {
 
     output.on("close", () => {
       fs.renameSync(path.join(__dirname, `./.${filename}`), path.join(__dirname, `./${filename}`));
+      for (const file of req.files) {
+        fs.removeSync(file.path);
+      }
     });
 
     const archive = archiver("zip-encrypted", {
