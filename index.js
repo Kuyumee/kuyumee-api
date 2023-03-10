@@ -70,6 +70,7 @@ app.post("/upload", upload.array("files"), async (req, res) => {
       for (const file of req.files) {
         fs.removeSync(file.path);
       }
+      res.send("Files uploaded successfully");
     });
 
     const archive = archiver("zip-encrypted", {
@@ -87,8 +88,6 @@ app.post("/upload", upload.array("files"), async (req, res) => {
     }
 
     archive.finalize();
-
-    res.send("Files uploaded successfully");
   } catch (error) {
     console.error(error);
     res.status(500).send("Error uploading files");
