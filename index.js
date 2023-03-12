@@ -94,13 +94,12 @@ app.post("/upload", upload.array("files"), async (req, res) => {
   }
 });
 
-function getDateFromFilename(filename) {
-  // IMG_20230307_114313.jpg IMG20230307070131.jpg IMG20230307070131~2.jpg IMG20230307004845_00.jpg IMG_20230228_004154.jpg
-  const date = filename.match(/[^\d](\d{4})(\d{2})(\d{2})_?(\d{2})(\d{2})(\d{2})[^\d]/);
-  if (date) {
-    return new Date(date[1], date[2] - 1, date[3], date[4], date[5], date[6]);
-  } else {
-    return new Date();
+/(\d{4})\D?(\d{2})\D?(\d{2})\D?(\d{2})\D?(\d{2})\D?(\d{2})/;
+
+function test() {
+  const testNames = ["IMG_2023-03-12-12-03-17-483", "IMG_20230312_120317", "IMG_20230312_120317.jpg", "IMG20230312120317.jpg", "IMG20230312120317~2.jpg", "IMG20230312120317_00.jpg"];
+  for (const name of testNames) {
+    console.log(getDateFromFilename(name), name);
   }
 }
 
