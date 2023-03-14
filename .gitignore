@@ -1,4 +1,5 @@
 *.zip
+uploads/
 
 # Logs
 logs
