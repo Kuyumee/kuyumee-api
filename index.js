@@ -1,8 +1,6 @@
-process.env.TZ = "Asia/Manila";
 require("dotenv").config();
 
 const path = require("path");
-const os = require("os");
 
 const fs = require("fs-extra");
 const express = require("express");
@@ -82,8 +80,9 @@ app.post("/upload", upload.array("files"), async (req, res) => {
     archive.pipe(output);
 
     for (const file of req.files) {
-      const imageDate = new Date(getDateFromFilename(file.originalname));
-      fs.utimesSync(file.path, imageDate, imageDate);
+      const imageDate = new Date(getDateFromFilename(file.originalname))
+      const asiaManila = new Date(imageDate.getTime() + 8 * 60 * 60 * 1000);
+      fs.utimesSync(file.path, asiaManila, asiaManila);
       archive.file(file.path, { name: file.originalname });
     }
 
