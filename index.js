@@ -7,6 +7,7 @@ const express = require("express");
 const multer = require("multer");
 const archiver = require("archiver");
 const animetracker = require("./api/animetracker.js");
+const moment = require("moment-timezone");
 
 const app = express();
 const storage = multer.diskStorage({
@@ -80,9 +81,9 @@ app.post("/upload", upload.array("files"), async (req, res) => {
     archive.pipe(output);
 
     for (const file of req.files) {
-      const imageDate = new Date(getDateFromFilename(file.originalname))
-      const asiaManila = new Date(imageDate.getTime() + 8 * 60 * 60 * 1000);
-      fs.utimesSync(file.path, asiaManila, asiaManila);
+      const fileDate = getDateFromFilename(file.originalname);
+
+      fs.utimesSync(file.path, fileDate, fileDate);
       archive.file(file.path, { name: file.originalname });
     }
 
@@ -96,7 +97,7 @@ app.post("/upload", upload.array("files"), async (req, res) => {
 function getDateFromFilename(filename) {
   const date = filename.match(/(\d{4})\D?(\d{2})\D?(\d{2})\D?(\d{2})\D?(\d{2})\D?(\d{2})/);
   if (date) {
-    return new Date(date[1], date[2] - 1, date[3], date[4], date[5], date[6]);
+    return new Date(Date.UTC(date[1], date[2] - 1, date[3], date[4], date[5], date[6]));
   } else {
     return new Date();
   }
