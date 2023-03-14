@@ -53,7 +53,9 @@ async function animetracker(f, d) {
     return result;
   } else if (f === "update") {
     const anime = JSON.parse(d);
-    await db.collection("animetracker").updateOne({ _id: anime.title }, { $addToSet: { episodes: anime.episode } }, { upsert: true });
+    await await db()
+      .collection("animetracker")
+      .updateOne({ _id: anime.title }, { $addToSet: { episodes: anime.episode } }, { upsert: true });
     return true;
   }
 }
