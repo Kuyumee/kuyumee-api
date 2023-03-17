@@ -7,7 +7,6 @@ const express = require("express");
 const multer = require("multer");
 const archiver = require("archiver");
 const animetracker = require("./api/animetracker.js");
-const moment = require("moment-timezone");
 
 const app = express();
 const storage = multer.diskStorage({
@@ -44,11 +43,8 @@ app.get("/", (req, res) => {
 
 app.get("/api/anime-tracker", async (req, res) => {
   try {
-    if (req.query.key !== process.env.KEY) {
-      return res.sendStatus(403);
-    }
-    const result = await animetracker(req.query.f, req.query.d);
-    res.send(result);
+    if (req.query.key !== process.env.KEY) return res.sendStatus(403);
+    res.send(await animetracker(req.query.f, req.query.d));
   } catch (error) {
     console.log(error);
     res.sendStatus(500);
@@ -57,33 +53,28 @@ app.get("/api/anime-tracker", async (req, res) => {
 
 app.post("/upload", upload.array("files"), async (req, res) => {
   try {
-    if (!req.files || req.files.length === 0) {
-      return res.status(400).send("No files were uploaded.");
-    }
+    if (!req.files || req.files.length === 0) return res.status(400).send("No files specified");
 
-    const filename = `${Date.now()}.zip`;
-    const output = fs.createWriteStream(path.join(__dirname, `./.${filename}`));
+    const path = path.join(__dirname, `/uploads/${Date.now()}}`);
+    const output = fs.createWriteStream();
 
     output.on("close", () => {
-      fs.renameSync(path.join(__dirname, `./.${filename}`), path.join(__dirname, `./${filename}`));
+      fs.renameSync(path, path + ".zip");
+      res.send("Files uploaded successfully");
       for (const file of req.files) {
         fs.removeSync(file.path);
       }
-      res.send("Files uploaded successfully");
     });
 
-    const archive = archiver("zip-encrypted", {
-      zlib: { level: 9 },
-      encryptionMethod: "aes256",
-      password: process.env.KEY,
-    });
+    const archive = archiver("zip-encrypted", { zlib: { level: 9 }, encryptionMethod: "aes256", password: process.env.KEY });
 
     archive.pipe(output);
 
     for (const file of req.files) {
-      const fileDate = getDateFromFilename(file.originalname);
-
+      const date = file.originalname.match(/(\d{4})\D?(\d{2})\D?(\d{2})\D?(\d{2})\D?(\d{2})\D?(\d{2})/);
+      const fileDate = date ? new Date(Date.UTC(date[1], date[2] - 1, date[3], date[4], date[5], date[6])) : new Date();
       fs.utimesSync(file.path, fileDate, fileDate);
+
       archive.file(file.path, { name: file.originalname });
     }
 
@@ -94,20 +85,14 @@ app.post("/upload", upload.array("files"), async (req, res) => {
   }
 });
 
-function getDateFromFilename(filename) {
-  const date = filename.match(/(\d{4})\D?(\d{2})\D?(\d{2})\D?(\d{2})\D?(\d{2})\D?(\d{2})/);
-  if (date) {
-    return new Date(Date.UTC(date[1], date[2] - 1, date[3], date[4], date[5], date[6]));
-  } else {
-    return new Date();
+app.get("/download", async (req, res) => {
+  try {
+    if (!req.query.f) return res.status(400).send("No file specified");
+    res.sendFile(path.join(__dirname, `/uploads/${req.query.f}`));
+  } catch (error) {
+    console.error(error);
+    res.status(500).send("Error downloading files");
   }
-}
-
-function test() {
-  const testNames = ["IMG_2023-03-12-12-03-17-483", "IMG_20230312_120317", "IMG_20230312_120317.jpg", "IMG20230312120317.jpg", "IMG20230312120317~2.jpg", "IMG20230312120317_00.jpg"];
-  for (const name of testNames) {
-    console.log(getDateFromFilename(name), name);
-  }
-}
+});
 
 app.listen(process.env.PORT, () => console.log("Ready!"));
