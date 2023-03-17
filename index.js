@@ -53,13 +53,13 @@ app.get("/api/anime-tracker", async (req, res) => {
 
 app.post("/upload", upload.array("files"), async (req, res) => {
   try {
-    if (!req.files || req.files.length === 0) return res.status(400).send("No files specified");
+    if (!req?.files?.length) return res.status(400).send("No files specified");
 
-    const path = path.join(__dirname, `/uploads/${Date.now()}}`);
-    const output = fs.createWriteStream();
+    const filePath = path.join(__dirname, `/uploads/${Date.now()}`);
+    const output = fs.createWriteStream(filePath);
 
     output.on("close", () => {
-      fs.renameSync(path, path + ".zip");
+      fs.renameSync(filePath, filePath + ".zip");
       res.send("Files uploaded successfully");
       for (const file of req.files) {
         fs.removeSync(file.path);
