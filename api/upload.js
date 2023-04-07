@@ -1,11 +1,10 @@
-const { default: axios } = require("axios");
-
 async function upload(req, res) {
   const os = require("os");
   const path = require("path");
   const fs = require("fs-extra");
   const archiver = require("archiver");
   const bucket = require("../helpers/bucket.js");
+  const axios = require("axios");
 
   const filename = `${Date.now()}.zip`;
   const filepath = path.join(os.tmpdir(), filename);
