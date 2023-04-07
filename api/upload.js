@@ -1,3 +1,5 @@
+const { default: axios } = require("axios");
+
 async function upload(req, res) {
   const os = require("os");
   const path = require("path");
@@ -9,9 +11,15 @@ async function upload(req, res) {
   const filepath = path.join(os.tmpdir(), filename);
   const output = fs.createWriteStream(filepath);
 
-  output.on("close", () => {
-    bucket.upload(filepath, filename);
+  output.on("close", async () => {
+    const url = await bucket.upload(filepath, filename);
     res.send("Files uploaded successfully");
+    axios(process.env.DISCORD_WEBHOOK_URL, {
+      method: "POST",
+      data: {
+        content: `Uploaded ${req.files.length} files to ${url}`,
+      },
+    });
     for (const file of req.files) {
       fs.removeSync(file.path);
     }
