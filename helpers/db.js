@@ -1,26 +1,22 @@
-const { MongoClient, GridFSBucket } = require("mongodb");
+const { MongoClient } = require("mongodb");
 
-const client = new MongoClient(process.env.MONGODB_URL);
+const uri = process.env.MONGO_URI;
+const client = new MongoClient(uri, { useUnifiedTopology: true });
 
 let mongodb;
-let bucket;
+connect();
 
-async function init() {
+async function connect() {
   await client.connect();
   mongodb = client.db("main");
-  bucket = new GridFSBucket(mongodb);
+
+  console.log("Connected to MongoDB");
 }
 
-function db() {
+function getDB() {
   return mongodb;
 }
 
-function getBucket() {
-  return bucket;
-}
-
 module.exports = {
-  init,
-  db,
-  getBucket,
+  getDB,
 };
