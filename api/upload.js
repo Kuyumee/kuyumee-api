@@ -6,29 +6,17 @@ async function upload(req, res) {
   const bucket = require("../helpers/bucket.js");
   const axios = require("axios");
 
-  const filename = `${Date.now()}.zip`;
-  const filepath = path.join(os.tmpdir(), filename);
-  const output = fs.createWriteStream(filepath);
-
-  output.on("close", async () => {
-    const url = await bucket.upload(filepath, filename);
-    res.send("Files uploaded successfully");
-    axios(process.env.DISCORD_WEBHOOK_URL, {
-      method: "POST",
-      data: {
-        content: `Uploaded ${req.files.length} files to ${url}`,
-      },
-    });
-    for (const file of req.files) {
-      fs.removeSync(file.path);
-    }
-  });
+  const zipName = `${Date.now()}.zip`;
+  const zipPath = path.join(os.tmpdir(), zipName);
+  const zipWriteStream = fs.createWriteStream(zipPath);
 
   const archive = archiver("zip", {
     zlib: { level: 0 },
   });
 
-  archive.pipe(output);
+  res.write("Compressing Files...");
+
+  archive.pipe(zipWriteStream);
 
   for (const file of req.files) {
     const date = file.originalname.match(/(\d{4})\D?(\d{2})\D?(\d{2})\D?(\d{2})\D?(\d{2})\D?(\d{2})/);
@@ -39,6 +27,21 @@ async function upload(req, res) {
   }
 
   archive.finalize();
+
+  zipWriteStream.on("close", async () => {
+    res.write("Transferring to Cloud Storage...");
+    const url = await bucket.upload(zipPath, zipName);
+    res.end("Files Uploaded Successfully");
+    axios(process.env.DISCORD_WEBHOOK_URL, {
+      method: "POST",
+      data: { 
+        content: `Uploaded ${req.files.length} files to ${url}`,
+      },
+    });
+    for (const file of req.files) {
+      fs.removeSync(file.path);
+    }
+  });
 }
 
 module.exports = upload;
