@@ -61,4 +61,4 @@ app.get("/download", async (req, res) => {
   }
 });
 
-app.listen(process.env.PORT, () => console.log("Ready!"));
+app.listen(process.env.PORT);

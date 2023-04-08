@@ -1,7 +1,7 @@
 async function animetracker(req, res) {
   const axios = require("axios");
   const { si } = require("nyaapi");
-  const db = require("../helpers/db.js").getDB();
+  const db = await require("../helpers/db.js").getDB();
 
   if (req.query.f === "home") {
     const watching = await axios(`https://api.myanimelist.net/v2/users/kuyumee/animelist?nsfw=1&status=watching&limit=1000`, { headers: { "X-MAL-CLIENT-ID": process.env.MAL_CLIENT_ID } }).then((a) => a.data.data);
@@ -11,10 +11,12 @@ async function animetracker(req, res) {
     const magnets = await si.searchAll({ term: `[ASW] "${result.map((a) => a.nyaa).join('"|"')}"` });
 
     for (const magnet of magnets.reverse()) {
-      const titleMatch = magnet.name.match(/\[ASW\] (.*?) - /i);
-      const episodeMatch = magnet.name.match(/.* - (.*?) \[/i);
+      const titleMatch = magnet.name.match(/\[ASW\] (.+) - (?:(?<=- )[^-]+(?= \[))/);
+      const episodeMatch = magnet.name.match(/(?<=- )([^-]+)(?= \[)/);
 
-      if (!titleMatch || !episodeMatch || isNaN(parseInt(episodeMatch[1]))) continue;
+      console.log(episodeMatch);
+
+      if (!titleMatch || !episodeMatch || episodeMatch[1].length >= 5) continue;
 
       const title = titleMatch[1];
       const episode = episodeMatch[1];
