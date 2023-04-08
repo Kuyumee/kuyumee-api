@@ -46,8 +46,16 @@ async function animetracker(req, res) {
       }
     }
 
-    result.sort((a, b) => a.episodes.at(-1).dateCreated - b.episodes.at(-1).dateCreated);
-    result.sort((a, b) => b.episodes.some((c) => !c.status) - a.episodes.some((c) => !c.status));
+    // Sorting: Top code should be the least priority
+    // Sort by last episode date is first
+    result = result.sort((a, b) => {
+      return b.episodes.at(-1).dateCreated - a.episodes.at(-1).dateCreated;
+    });
+
+    // Sort unwatched is first
+    result = result.sort((a, b) => {
+      return a.episodes.at(-1).status - b.episodes.at(-1).status;
+    });
 
     res.json(result);
   } else if (req.query.f === "update") {
