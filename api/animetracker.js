@@ -14,8 +14,6 @@ async function animetracker(req, res) {
       const titleMatch = magnet.name.match(/\[ASW\] (.+) - (?:(?<=- )[^-]+(?= \[))/);
       const episodeMatch = magnet.name.match(/(?<=- )([^-]+)(?= \[)/);
 
-      console.log(episodeMatch);
-
       if (!titleMatch || !episodeMatch || episodeMatch[1].length >= 5) continue;
 
       const title = titleMatch[1];
