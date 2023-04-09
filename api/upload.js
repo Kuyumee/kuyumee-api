@@ -14,8 +14,6 @@ async function upload(req, res) {
     zlib: { level: 0 },
   });
 
-  res.write("Compressing Files...");
-
   archive.pipe(zipWriteStream);
 
   for (const file of req.files) {
@@ -29,18 +27,18 @@ async function upload(req, res) {
   archive.finalize();
 
   zipWriteStream.on("close", async () => {
-    res.write("Transferring to Cloud Storage...");
     const url = await bucket.upload(zipPath, zipName);
-    res.end("Files Uploaded Successfully");
+    res.sendStatus(200);
     axios(process.env.DISCORD_WEBHOOK_URL, {
       method: "POST",
-      data: { 
+      data: {
         content: `Uploaded ${req.files.length} files to ${url}`,
       },
     });
     for (const file of req.files) {
       fs.removeSync(file.path);
     }
+    fs.removeSync(zipPath);
   });
 }
 
