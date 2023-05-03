@@ -17,6 +17,16 @@ const upload = multer({
   storage: storage,
 });
 
+fastify.setErrorHandler(async (error, request, reply) => {
+  console.log(error);
+  reply.status(500).send("Internal server error");
+});
+
+fastify.register(require("@fastify/cors"), {
+  origin: "*",
+  methods: ["GET", "POST", "OPTIONS"],
+});
+
 fastify.get("/", (request, reply) => {
   reply.send("OK");
 });
@@ -29,15 +39,6 @@ fastify.get("/animetracker", async (request, reply) => {
 fastify.post("/upload", { files: upload.array("files") }, async (request, reply) => {
   if (request?.files?.length) return reply.code(400).send("No files specified");
   await require("./api/upload.js")(request, reply);
-});
-
-fastify.register(require("@fastify/cors"), {
-  origin: false,
-});
-
-fastify.setErrorHandler(async (error, request, reply) => {
-  console.log(error);
-  reply.status(500).send("Internal server error");
 });
 
 fastify.listen({ port: process.env.PORT });
