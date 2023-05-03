@@ -1,12 +1,22 @@
-async function animetracker(req, res) {
+async function animetracker(request, reply) {
   const axios = require("axios");
   const { si } = require("nyaapi");
   const db = await require("../helpers/db.js").getDB();
 
-  if (req.query.f === "home") {
-    const watching = await axios(`https://api.myanimelist.net/v2/users/kuyumee/animelist?nsfw=1&status=watching&limit=1000`, { headers: { "X-MAL-CLIENT-ID": process.env.MAL_CLIENT_ID } }).then((a) => a.data.data);
+  const { f, d } = request.query;
 
-    let animes = watching.map((a) => ({ title: a.node.title, nyaaTitle: null, searchKey: a.node.title.slice(1, 8), main_picture: a.node.main_picture.medium, episodes: [] }));
+  if (f === "home") {
+    const watching = await axios(`https://api.myanimelist.net/v2/users/kuyumee/animelist?nsfw=1&status=watching&limit=1000`, {
+      headers: { "X-MAL-CLIENT-ID": process.env.MAL_CLIENT_ID },
+    });
+
+    let animes = watching.data.data.map((a) => ({
+      title: a.node.title,
+      nyaaTitle: null,
+      searchKey: a.node.title.slice(1, 8),
+      main_picture: a.node.main_picture.medium,
+      episodes: [],
+    }));
 
     const animeMagnets = await si.searchAll({ term: `[ASW] "${animes.map((a) => a.searchKey).join('"|"')}"` });
 
@@ -60,12 +70,12 @@ async function animetracker(req, res) {
       return a.episodes.at(-1).status - b.episodes.at(-1).status;
     });
 
-    res.json(animes);
-  } else if (req.query.f === "update") {
-    const anime = JSON.parse(req.query.d);
+    return reply.send(animes);
+  } else if (f === "update") {
+    const anime = JSON.parse(d);
     await db.collection("animetracker").updateOne({ _id: anime.title }, { $addToSet: { episodes: anime.episode } }, { upsert: true });
 
-    res.sendStatus(200);
+    return reply.send("OK");
   }
 }
 
