@@ -5,9 +5,8 @@ const client = new MongoClient(uri, { useUnifiedTopology: true });
 
 let mongodb = null;
 
-connect();
 
-async function connect() {
+async function init() {
   if (mongodb) return;
 
   await client.connect();
@@ -17,10 +16,11 @@ async function connect() {
 }
 
 async function getDB() {
-  await connect();
+  await init();
   return mongodb;
 }
 
 module.exports = {
   getDB,
+  init,
 };

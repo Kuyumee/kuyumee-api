@@ -1,39 +1,36 @@
 require("dotenv").config();
-
+const fastify = require("fastify");
 const path = require("path");
-
-const fs = require("fs-extra");
-const express = require("express");
 const multer = require("multer");
 const os = require("os");
 
-const app = express();
+// Initialize the database and bucket helpers
+require("./helpers/db.js").init();
+require("./helpers/bucket.js").init();
 
+const app = fastify();
+
+// Create a storage object for multer
 const storage = multer.diskStorage({
   destination: function (req, file, cb) {
     cb(null, os.tmpdir());
   },
 });
 
+// Create a multer object
 const upload = multer({
   storage: storage,
-  timeout: 900000,
 });
 
-require("./helpers/db.js");
-require("./helpers/bucket.js");
-
-app.use("/", function (req, res, next) {
-  console.log(req.method, req.url);
-  req.setTimeout(900000);
-  req.socket.setTimeout(900000);
-  res.setHeader("Access-Control-Allow-Origin", "*");
-  res.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS, PUT, PATCH, DELETE");
-  res.setHeader("Access-Control-Allow-Headers", "X-Requested-With,content-type");
-  res.setHeader("Access-Control-Allow-Credentials", true);
-  next();
+// Add CORS headers
+app.addCors({
+  origin: "*",
+  methods: ["GET", "POST", "OPTIONS", "PUT", "PATCH", "DELETE"],
+  headers: ["X-Requested-With", "content-type"],
+  credentials: true,
 });
 
+// Define the routes
 app.get("/", (req, res) => {
   res.end("OK");
 });
@@ -41,7 +38,7 @@ app.get("/", (req, res) => {
 app.get("/animetracker", async (req, res) => {
   try {
     if (req.query.key !== process.env.KEY) return res.sendStatus(403);
-    require("./api/animetracker.js")(req, res);
+    await require("./api/animetracker.js")(req, res);
   } catch (error) {
     console.log(error);
     res.sendStatus(500);
@@ -68,4 +65,5 @@ app.get("/download", async (req, res) => {
   }
 });
 
+// Listen on the specified port
 app.listen(process.env.PORT);

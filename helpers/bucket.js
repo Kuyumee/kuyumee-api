@@ -3,9 +3,7 @@ const fs = require("fs");
 
 let client = null;
 
-connect();
-
-async function connect() {
+async function init() {
   if (client) return;
   const connecting = new S3Client({
     credentials: {
@@ -28,7 +26,7 @@ async function connect() {
 }
 
 async function upload(filepath, filename) {
-  await connect();
+  await init();
 
   const key = filename;
 
@@ -45,4 +43,5 @@ async function upload(filepath, filename) {
 
 module.exports = {
   upload,
+  init,
 };
