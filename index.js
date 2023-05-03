@@ -24,6 +24,7 @@ require("./helpers/db.js");
 require("./helpers/bucket.js");
 
 app.use("/", function (req, res, next) {
+  req.setTimeout(1000);
   res.setHeader("Access-Control-Allow-Origin", "*");
   res.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS, PUT, PATCH, DELETE");
   res.setHeader("Access-Control-Allow-Headers", "X-Requested-With,content-type");
@@ -46,7 +47,6 @@ app.get("/animetracker", async (req, res) => {
 });
 
 app.post("/upload", upload.array("files"), async (req, res) => {
-  req.setTimeout(1000);
   try {
     if (!req?.files?.length) return res.status(400).send("No files specified");
     await require("./api/upload.js")(req, res);
