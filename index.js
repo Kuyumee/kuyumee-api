@@ -32,8 +32,7 @@ fastify.post("/upload", { files: upload.array("files") }, async (request, reply)
 });
 
 fastify.register(require("@fastify/cors"), {
-  origin: "*",
-  methods: ["GET", "POST", "OPTIONS", "PUT", "PATCH", "DELETE"],
+  origin: false,
 });
 
 fastify.setErrorHandler(async (error, request, reply) => {
