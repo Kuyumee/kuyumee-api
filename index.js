@@ -17,7 +17,7 @@ const storage = multer.diskStorage({
 
 const upload = multer({
   storage: storage,
-  timeout: null,
+  timeout: 0,
 });
 
 require("./helpers/db.js");
@@ -25,7 +25,7 @@ require("./helpers/bucket.js");
 
 app.use("/", function (req, res, next) {
   console.log(req.method, req.url);
-  req.setTimeout(null);
+  req.setTimeout(0);
   res.setHeader("Access-Control-Allow-Origin", "*");
   res.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS, PUT, PATCH, DELETE");
   res.setHeader("Access-Control-Allow-Headers", "X-Requested-With,content-type");
