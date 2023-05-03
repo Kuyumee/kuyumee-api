@@ -40,4 +40,4 @@ fastify.post("/upload", { preHandler: upload.array("files") }, async (request, r
   await require("./api/upload.js")(request, reply);
 });
 
-fastify.listen({ port: process.env.PORT });
+fastify.listen({ host: process.env.HOST, port: process.env.PORT });
