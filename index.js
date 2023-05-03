@@ -16,7 +16,7 @@ const upload = multer({
   storage: storage,
 });
 
-await fastify.register(require("@fastify/cors"), {
+fastify.register(require("@fastify/cors"), {
   origin: "*",
 });
 
