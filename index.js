@@ -22,8 +22,10 @@ fastify.setErrorHandler(async (error, request, reply) => {
 });
 
 fastify.register(require("@fastify/cors"), (instance) => {
-  instance.origin = "*";
-  instance.methods = ["GET", "POST", "UPDATE"];
+  return (req, callback) => {
+    const corsOptions = { origin: true };
+    callback(null, corsOptions);
+  };
 });
 
 fastify.register(async function (fastify) {
