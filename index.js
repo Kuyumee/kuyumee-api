@@ -24,7 +24,8 @@ require("./helpers/db.js");
 require("./helpers/bucket.js");
 
 app.use("/", function (req, res, next) {
-  req.setTimeout(1000);
+  console.log(req.method, req.url);
+  req.setTimeout(null);
   res.setHeader("Access-Control-Allow-Origin", "*");
   res.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS, PUT, PATCH, DELETE");
   res.setHeader("Access-Control-Allow-Headers", "X-Requested-With,content-type");
