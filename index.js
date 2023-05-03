@@ -15,7 +15,10 @@ const storage = multer.diskStorage({
   },
 });
 
-const upload = multer({ storage: storage });
+const upload = multer({
+  storage: storage,
+  timeout: null,
+});
 
 require("./helpers/db.js");
 require("./helpers/bucket.js");
