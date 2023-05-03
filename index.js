@@ -17,13 +17,13 @@ const upload = multer({
   storage: storage,
 });
 
-fastify.register(cors, {
-  origin: "*",
-});
-
 fastify.setErrorHandler(async (error, request, reply) => {
   console.log(error);
   reply.status(500).send("Internal server error");
+});
+
+fastify.register(cors, {
+  origin: "*",
 });
 
 fastify.get("/", (request, reply) => {
