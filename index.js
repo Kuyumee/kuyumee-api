@@ -16,19 +16,16 @@ const upload = multer({
   storage: storage,
 });
 
-fastify.setErrorHandler(async (error, request, reply) => {
-  console.log(error);
-  reply.status(500).send("Internal server error");
-});
+(async () => {
+  await fastify.register(require("@fastify/cors"), {
+    origin: "*",
+  });
 
-fastify.register(require("@fastify/cors"), (instance) => {
-  return (req, callback) => {
-    const corsOptions = { origin: true };
-    callback(null, corsOptions);
-  };
-});
+  fastify.setErrorHandler(async (error, request, reply) => {
+    console.log(error);
+    reply.status(500).send("Internal server error");
+  });
 
-fastify.register(async function (fastify) {
   fastify.get("/", (request, reply) => {
     reply.send("OK");
   });
@@ -42,6 +39,6 @@ fastify.register(async function (fastify) {
     if (request?.files?.length) return reply.code(400).send("No files specified");
     await require("./api/upload.js")(request, reply);
   });
-});
 
-fastify.listen({ port: process.env.PORT });
+  fastify.listen({ port: process.env.PORT });
+})();
