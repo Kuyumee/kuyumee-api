@@ -1,5 +1,5 @@
 require("dotenv").config();
-const fastify = require("fastify")();
+const fastify = require("fastify")({ logger: true });
 const cors = require("@fastify/cors");
 const multer = require("multer");
 const os = require("os");
