@@ -43,6 +43,7 @@ app.get("/animetracker", async (req, res) => {
 });
 
 app.post("/upload", upload.array("files"), async (req, res) => {
+  console.log("Received upload request")
   try {
     if (!req?.files?.length) return res.status(400).send("No files specified");
     await require("./api/upload.js")(req, res);
