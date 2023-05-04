@@ -38,7 +38,6 @@ async function upload(request, reply) {
   const url = await bucket.upload(zipPath, zipName);
 
   fs.removeSync(zipPath);
-  request.cleanRequestFiles();
 
   await axios(process.env.DISCORD_WEBHOOK_URL, {
     method: "POST",
