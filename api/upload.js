@@ -44,7 +44,9 @@ async function upload(request, reply) {
     },
   });
 
+  fs.removeSync(zipPath);
   request.cleanRequestFiles();
+
   reply.send("OK");
 }
 
