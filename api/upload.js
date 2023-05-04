@@ -4,9 +4,8 @@ async function upload(request, reply) {
   try {
     files = await request.saveRequestFiles();
   } catch (e) {
-    console.log("An error occured while saving files");
-    console.log(e);
-    return reply.code(500).send("An error occured while saving files");
+    console.log("An error occurred while saving files. Cleaning up");
+    return request.cleanRequestFiles();
   }
 
   console.log("Loading modules");
