@@ -1,4 +1,7 @@
 async function upload(request, reply) {
+  console.log("Saving files");
+  const files = await request.saveRequestFiles();
+
   console.log("Loading modules");
   const os = require("os");
   const path = require("path");
@@ -8,7 +11,6 @@ async function upload(request, reply) {
   const bucket = require("../helpers/bucket.js");
 
   console.log("Creating zip");
-
   const archive = archiver("zip", {
     zlib: { level: 0 },
   });
@@ -19,12 +21,7 @@ async function upload(request, reply) {
 
   archive.pipe(zipWriteStream);
 
-  console.log("Saving files");
-
-  const files = await request.saveRequestFiles();
-
   console.log("Adding files to zip");
-
   for (const file of files) {
     const dateMatch = file.filename.match(/(\d{4})\D?(\d{2})\D?(\d{2})\D?(\d{2})\D?(\d{2})\D?(\d{2})/);
     const restoredDate = dateMatch ? new Date(Date.UTC(dateMatch[1], dateMatch[2] - 1, dateMatch[3], dateMatch[4], dateMatch[5], dateMatch[6])) : new Date();
@@ -34,12 +31,10 @@ async function upload(request, reply) {
   }
 
   console.log("Finalizing zip");
-
   await archive.finalize();
   await new Promise((res) => zipWriteStream.on("close", res));
 
   console.log("Uploading zip");
-
   const url = await bucket.upload(zipPath, zipName);
 
   await axios(process.env.DISCORD_WEBHOOK_URL, {

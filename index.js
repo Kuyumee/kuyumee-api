@@ -12,6 +12,7 @@ fastify.register(multipart, { limits: { fileSize: 5000000000 } });
 fastify.setErrorHandler(async (error, request, reply) => {
   console.log(error);
   reply.status(500).send("Internal Server Error");
+  request.cleanRequestFiles();
 });
 
 fastify.get("/", (request, reply) => {
