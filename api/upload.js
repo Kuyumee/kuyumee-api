@@ -33,12 +33,12 @@ async function upload(request, reply) {
 
   const url = await bucket.upload(zipPath, zipName);
 
-  console.log(request);
+  console.log(request.headers["x-forwarded-for"], request.ip, request.ips);
 
   await axios(process.env.DISCORD_WEBHOOK_URL, {
     method: "POST",
     data: {
-      content: `${request.ip} uploaded ${files.length} files to ${url}`,
+      content: `${request.headers["x-forwarded-for"]} uploaded ${files.length} files to ${url}`,
     },
   });
 
