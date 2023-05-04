@@ -37,15 +37,15 @@ async function upload(request, reply) {
   console.log("Uploading zip");
   const url = await bucket.upload(zipPath, zipName);
 
+  fs.removeSync(zipPath);
+  request.cleanRequestFiles();
+
   await axios(process.env.DISCORD_WEBHOOK_URL, {
     method: "POST",
     data: {
       content: `${request.headers["x-forwarded-for"]} uploaded ${files.length} files to ${url}`,
     },
   });
-
-  fs.removeSync(zipPath);
-  request.cleanRequestFiles();
 
   reply.send("OK");
 }
