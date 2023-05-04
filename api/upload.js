@@ -2,7 +2,7 @@ async function upload(request, reply) {
   console.log("Saving files");
   let files;
   try {
-    files = await request.saveRequestFiles();
+    files = req.files();
   } catch (e) {
     console.log("An error occurred while saving files. Cleaning up");
     request = null;
