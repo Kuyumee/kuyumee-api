@@ -13,7 +13,8 @@ fastify.setErrorHandler(async (error, request, reply) => {
   console.log(error);
   reply.status(500).send("Internal Server Error");
   await request.cleanRequestFiles();
-  request.connection.destroy();
+  console.log(request.socket.remoteAddress)
+  request.socket.destroy();
   request.tmpUploads.forEach((file) => file.cleanupCallback());
   request.files.forEach((file) => file.cleanupCallback());
   request.files = [];
