@@ -1,12 +1,11 @@
 async function upload(request, reply) {
-  console.log("Saving files");
   let files;
+
   try {
-    files = req.files();
+    files = await request.saveRequestFiles();
   } catch (e) {
-    console.log("An error occurred while saving files. Cleaning up");
-    request = null;
-    reply = null;
+    console.log("Error saving files", e);
+    await request.cleanRequestFiles();
     return;
   }
 
