@@ -1,6 +1,13 @@
 async function upload(request, reply) {
   console.log("Saving files");
-  const files = await request.saveRequestFiles();
+  let files;
+  try {
+    files = await request.saveRequestFiles();
+  } catch (e) {
+    console.log("An error occured while saving files");
+    console.log(e);
+    return reply.code(500).send("An error occured while saving files");
+  }
 
   console.log("Loading modules");
   const os = require("os");
