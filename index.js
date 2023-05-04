@@ -22,7 +22,6 @@ fastify.get("/animetracker", async (request, reply) => {
 });
 
 fastify.post("/upload", async (request, reply) => {
-  if (!request.isMultipart()) return reply.code(400).send("No files were uploaded");
   await require("./api/upload.js")(request, reply);
 });
 
