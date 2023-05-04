@@ -44,6 +44,7 @@ async function upload(request, reply) {
     },
   });
 
+  request.cleanRequestFiles();
   reply.send("OK");
 }
 
