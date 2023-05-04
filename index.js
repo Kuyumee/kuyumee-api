@@ -1,13 +1,11 @@
 require("dotenv").config();
-const fastify = require("fastify")({ logger: true, http2: true });
-const cors = require("@fastify/cors");
-const multipart = require("@fastify/multipart");
+const fastify = require("fastify")({ logger: true });
 
 require("./helpers/db.js").init();
 require("./helpers/bucket.js").init();
 
-fastify.register(cors, { origin: "*" });
-fastify.register(multipart, { limits: { fileSize: 5000000000 } });
+fastify.register(require("@fastify/cors"), { origin: "*" });
+fastify.register(require("@fastify/multipart"), { limits: { fileSize: 5000000000 } });
 
 fastify.setErrorHandler(async (error, request, reply) => {
   console.log(error);
