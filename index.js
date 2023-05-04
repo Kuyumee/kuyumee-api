@@ -1,29 +1,22 @@
 require("dotenv").config();
-const fastify = require("fastify")({ logger: true });
+const fastify = require("fastify")();
 const cors = require("@fastify/cors");
-const multer = require("multer");
+const multipart = require("@fastify/multipart");
 const os = require("os");
 
 require("./helpers/db.js").init();
 require("./helpers/bucket.js").init();
 
-const storage = multer.diskStorage({
-  destination: function (req, file, cb) {
-    cb(null, os.tmpdir());
-  },
-});
-
-const upload = multer({
-  storage: storage,
-});
-
 fastify.setErrorHandler(async (error, request, reply) => {
   console.log(error);
-  reply.status(500).send("Internal server error");
+  reply.status(500).send("Internal Server Error");
 });
 
-fastify.register(cors, {
-  origin: "*",
+fastify.register(cors, { origin: "*" });
+fastify.register(multipart, {
+  limits: {
+    fileSize: 5000000000,
+  },
 });
 
 fastify.get("/", (request, reply) => {
@@ -35,8 +28,8 @@ fastify.get("/animetracker", async (request, reply) => {
   await require("./api/animetracker.js")(request, reply);
 });
 
-fastify.post("/upload", { preHandler: upload.array("files") }, async (request, reply) => {
-  if (request?.files?.length) return reply.code(400).send("No files specified");
+fastify.post("/upload", async (request, reply) => {
+  if (!request.isMultipart()) return reply.code(400).send("No files were uploaded");
   await require("./api/upload.js")(request, reply);
 });
 

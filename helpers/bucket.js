@@ -35,6 +35,7 @@ async function upload(filepath, filename) {
       Bucket: process.env.R2_BUCKET_NAME,
       Key: key,
       Body: fs.createReadStream(filepath),
+      // ContentLength: fs.statSync(filepath).size,
     })
   );
 

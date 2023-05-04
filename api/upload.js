@@ -1,16 +1,13 @@
 async function upload(request, reply) {
-  // Import modules
   const os = require("os");
   const path = require("path");
   const fs = require("fs-extra");
   const archiver = require("archiver");
-  const bucket = require("../helpers/bucket.js");
   const axios = require("axios");
+  const bucket = require("../helpers/bucket.js");
 
-  const tempDir = fs.mkdtemp();
-
-  const zipName = `${Date.now()}.zip`;
-  const zipPath = path.join(tempDir, zipName);
+  const zipName = `upload-${Date.now()}.zip`;
+  const zipPath = path.join(os.tmpdir(), zipName);
   const zipWriteStream = fs.createWriteStream(zipPath);
 
   const archive = archiver("zip", {
@@ -19,31 +16,33 @@ async function upload(request, reply) {
 
   archive.pipe(zipWriteStream);
 
-  for (const file of request.files) {
-    const date = file.originalname.match(/(\d{4})\D?(\d{2})\D?(\d{2})\D?(\d{2})\D?(\d{2})\D?(\d{2})/);
-    const fileDate = date ? new Date(Date.UTC(date[1], date[2] - 1, date[3], date[4], date[5], date[6])) : new Date();
+  const files = await request.saveRequestFiles();
 
-    fs.utimesSync(file.path, fileDate, fileDate);
+  console.log("Saved files");
 
-    archive.file(file.path, { name: file.originalname });
+  for (const file of files) {
+    const dateMatch = file.filename.match(/(\d{4})\D?(\d{2})\D?(\d{2})\D?(\d{2})\D?(\d{2})\D?(\d{2})/);
+    const restoredDate = dateMatch ? new Date(Date.UTC(dateMatch[1], dateMatch[2] - 1, dateMatch[3], dateMatch[4], dateMatch[5], dateMatch[6])) : new Date();
+    fs.utimesSync(file.filepath, restoredDate, restoredDate);
+
+    archive.file(file.filepath, { name: file.filename });
   }
 
-  archive.finalize();
-
-  zipWriteStream.close();
+  await archive.finalize();
+  await new Promise((res) => zipWriteStream.on("close", res));
 
   const url = await bucket.upload(zipPath, zipName);
 
-  reply.send("OK");
+  console.log(request);
 
-  axios(process.env.DISCORD_WEBHOOK_URL, {
+  await axios(process.env.DISCORD_WEBHOOK_URL, {
     method: "POST",
     data: {
-      content: `${request.ip} uploaded ${request.files.length} files to ${url}`,
+      content: `${request.ip} uploaded ${files.length} files to ${url}`,
     },
   });
 
-  fs.rmdir(tempDir);
+  reply.send("OK");
 }
 
 module.exports = upload;
