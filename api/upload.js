@@ -7,6 +7,7 @@ async function upload(request, reply) {
     console.log("Error saving files", e);
     await request.cleanRequestFiles();
     reply.code(500).send("Internal Server Error");
+    if (global.gc) global.gc()
     return;
   }
 
