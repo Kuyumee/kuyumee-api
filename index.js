@@ -1,3 +1,4 @@
+// npm i dotenv fastify @fastify/cors @fastify/multipart @aws-sdk/client-s3 fs-extra nyaapi mongodb archiver axios
 require("dotenv").config();
 const fastify = require("fastify")({ logger: true });
 
