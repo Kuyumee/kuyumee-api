@@ -1,3 +1,17 @@
+function createSearchKey(title) {
+  // return title.slice(1, 12); // Keep only first 12 characters
+  return title.replace(/[^a-zA-Z0-9 ]/g, " ").replace(/\s\s+/g, " "); // Keep only alphanumeric and space
+}
+
+function sameTitle(title, simple) {
+  // If all words in simple are in title, return true
+  const simpleWords = simple.split(" ");
+  for (const simpleWord of simpleWords) {
+    if (!title.includes(simpleWord)) return false;
+  }
+  return true;
+}
+
 async function animetracker(request, reply) {
   const axios = require("axios");
   const { si } = require("nyaapi");
@@ -11,30 +25,35 @@ async function animetracker(request, reply) {
     });
 
     let animes = watching.data.data.map((a) => ({
-      title: a.node.title,
+      officialTitle: a.node.title,
       nyaaTitle: null,
-      searchKey: a.node.title.slice(1, 12),
+      searchKey: createSearchKey(a.node.title),
       main_picture: a.node.main_picture.medium,
       episodes: [],
     }));
 
-    const animeMagnets = await si.searchAll({ term: `[ASW] "${animes.map((a) => a.searchKey).join('"|"')}"` });
+    const allAnimeSearchKey = `"[ASW]"|"[EMBER]"|"[Erai-raws]" (${animes.map((a) => a.searchKey).join(")|(")})`;
+    const animeMagnets = await si.searchAll({ term: allAnimeSearchKey });
+
+    animeMagnets.sort();
 
     for (const animeMagnet of animeMagnets) {
-      const titleMatch = animeMagnet.name.match(/\[ASW\] (.+) - (?:(?<=- )[^-]+(?= \[))/);
-      const episodeMatch = animeMagnet.name.match(/(?<=- )([^-]+)(?= \[)/);
+      const titleAndEpisodeMatch = animeMagnet.name.match(/\[ASW\]\s(.*?)\s-\s(\d+)\s\[1080/) ?? animeMagnet.name.match(/\[EMBER\]\s(.*?)\sS\d+E(\d+)\s\[1080/) ?? animeMagnet.name.match(/\[Erai-raws\]\s(.*?)\s-\s(\d+)\s\[1080/);
+      if (!titleAndEpisodeMatch) continue;
 
-      if (!titleMatch || !episodeMatch || episodeMatch[1].length > 4) continue;
+      const magnetAnimeTitle = titleAndEpisodeMatch[1];
+      const magnetAnimeEpisode = titleAndEpisodeMatch[2];
 
-      const title = titleMatch[1];
-      const episode = episodeMatch[1];
-
-      const index = animes.findIndex((a) => title === a.nyaaTitle || (title.includes(a.searchKey) && a.nyaaTitle === null));
+      const index = animes.findIndex((a) => magnetAnimeTitle === a.nyaaTitle || (sameTitle(magnetAnimeTitle, a.searchKey) && a.nyaaTitle === null)); // Always bind to the first match
       if (index === -1) continue;
 
-      animes[index].nyaaTitle = title;
+      //if episode already exists, skip
+      if (animes[index].episodes.some((a) => a.episode == magnetAnimeEpisode)) continue;
+
+      animes[index].nyaaTitle = magnetAnimeTitle;
       animes[index].episodes.push({
-        episode,
+        episode: magnetAnimeEpisode,
+        magnetName: animeMagnet.name,
         magnetLink: animeMagnet.magnet,
         dateCreated: new Date(animeMagnet.date).getTime(),
         status: 0,
@@ -46,11 +65,11 @@ async function animetracker(request, reply) {
 
     const dbResult = await db
       .collection("animetracker")
-      .find({ _id: { $in: animes.map((a) => a.title) } })
+      .find({ _id: { $in: animes.map((a) => a.officialTitle) } })
       .toArray();
 
     for (const animeDbEntry of dbResult) {
-      const index = animes.findIndex((a) => a.title === animeDbEntry._id);
+      const index = animes.findIndex((a) => a.officialTitle === animeDbEntry._id);
       if (index === -1) continue;
       for (const episode of animeDbEntry.episodes) {
         const episodeIndex = animes[index].episodes.findIndex((a) => a.episode == episode);
@@ -73,7 +92,7 @@ async function animetracker(request, reply) {
     return reply.send(animes);
   } else if (f === "update") {
     const anime = JSON.parse(d);
-    await db.collection("animetracker").updateOne({ _id: anime.title }, { $addToSet: { episodes: anime.episode } }, { upsert: true });
+    await db.collection("animetracker").updateOne({ _id: anime.officialTitle }, { $addToSet: { episodes: anime.episode } }, { upsert: true });
 
     return reply.send("OK");
   }
