@@ -13,7 +13,7 @@ async function animetracker(request, reply) {
     let animes = watching.data.data.map((a) => ({
       title: a.node.title,
       nyaaTitle: null,
-      searchKey: a.node.title.slice(1, 8),
+      searchKey: a.node.title.slice(1, 12),
       main_picture: a.node.main_picture.medium,
       episodes: [],
     }));
