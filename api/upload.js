@@ -30,9 +30,6 @@ async function upload(request, reply) {
 async function sendToDiscord(message) {
   const axios = require("axios");
 
-  const webhook = process.env.DISCORD_WEBHOOK;
-  if (!webhook) return;
-
   await axios(process.env.DISCORD_WEBHOOK_URL, {
     method: "POST",
     data: {
